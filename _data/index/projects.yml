@@ -1,22 +1,34 @@
 # projects section data
 # If you don't have language feature(language.yml is empty), ignore "i18n" items
 # Suggest projects' img be located at '/static/assets/img/landing', and edit following img items.
-- name: Jalpc
-  i18n: jalpc
-  gh_user: jarrekk
-  repo: Jalpc
-  img: /static/assets/img/landing/jekyll.png
-  desc: This project is my project. I use Javascript to get repo's information all my repos have only one request.
+- name: SLiM
+  i18n: SLiM
+  gh_user:
+  gl_user: dt-team
+  repo: 
+  url: 
+  img: /static/assets/img/landing/SLiM.jpg
+  desc: EDA SW 라이센스 구매 요청, 발급, 설치 등 전반적인 라이센스 생애 주기 관리하는 플랫폼입니다.
 
-- name: Python
-  i18n: cpython
-  gh_user: python
-  repo: cpython
-  img: /static/assets/img/landing/python.png
-  desc: This project is other's project. I use another request to get repo's information.
+- name: Chatbot
+  i18n: Chatbot
+  gh_user:
+  repo: 
+  img: /static/assets/img/landing/Knox Teams.jpg
+  desc: 사내 Chatbot 과제입니다.
 
-- name: Google
-  i18n: google
-  url: https://google.com
-  img: /static/assets/img/landing/google.png
-  desc: This is another project.
+- name: 50Tube
+  i18n: 50Tube
+  gh_user:
+  repo: 
+  url: 
+  img: /static/assets/img/landing/50Tube.jpg
+  desc: 오공이를 자랑하기 위해 만든 사이트 입니다!
+
+- name: kakao Clone
+  i18n: kakao Clone
+  gh_user:
+  repo: 
+  url: 
+  img: /static/assets/img/landing/kakaoTalk.jpg
+  desc: HTML, CSS를 공부하기 위해 카카오톡을 클론한 과제입니다.
