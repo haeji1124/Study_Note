@@ -6,17 +6,17 @@
 - name: Python
   href: /python/
 
-- name: Linux
-  href: /linux/
+- name: Web
+  href: /web/
 
-- name: HTML
-  href: /html/
+- name: Datastructure
+  href: /datastructure/
 
 - name: Database
   href: /database/
 
-- name: Mac
-  href: /mac/
+- name: ChatBot
+  href: /chatBot/
 
 - name: Life
   href: /life/
