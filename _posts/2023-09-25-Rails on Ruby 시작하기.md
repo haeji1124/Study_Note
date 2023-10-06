@@ -6,7 +6,7 @@ desc: "Rails on ruby 프레임워크 사용법"
 keywords: "ruby,rails,rails on ruby, website,blog,easy"
 categories: [Web]
 tags: [ruby, rails on ruby]
-icon: icon-html
+icon: icon-ruby-on-rails-alt
 typora-root-url: ../
 ---
 <span style='color:blue' >출처 : 판다코인 Rais on Ruby 강의</span>
