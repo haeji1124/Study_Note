@@ -1,0 +1,212 @@
+---
+layout: post
+title: "고양이팡 게임만들기"
+date: 2023-11-15
+desc: "파이썬 게임만들기 입문"
+keywords: "python, game, 게임, 고양이팡"
+categories: [Python]
+tags: [Python, game, 게임]
+icon: icon-python
+---
+
+```python
+import tkinter
+import random  # 고양이 이미지를 랜덤하게 하기 위해 random 모듈 사용
+from pprint import pprint
+
+width = 912
+height = 768
+
+window = tkinter.Tk()
+
+window.title("블록팡판정")
+window.geometry(f"{width}x{height}+100+100")  # 너비x높이+x좌표+y좌표
+window.resizable(False, False)
+
+# 나타낼 것들이 이미지로 되어 있어(배경, 블록, 커서 등) 따라서 이미지를 그릴 수 있는 canvas가 필요함.
+canvas = tkinter.Canvas(window, width=width, height=height)
+canvas.pack(padx=0, pady=0)
+
+bg_img = tkinter.PhotoImage(file="neko_bg.png")
+cursor_img = tkinter.PhotoImage(file="neko_cursor.png")
+# cat_img = tkinter.PhotoImage(file="neko6.png")
+# 이미지의 중심좌표x, 이미지의 중심좌표y, image=PhotoImage
+canvas.create_image(width//2, height//2, image=bg_img)
+# 이미지의 중심좌표x, 이미지의 중심좌표y, image=PhotoImage
+# 이미지크기가 72*72 판 테두리 24
+
+# 초기커서의 위치
+cursor_x = int(72/2+24)
+cursor_y = int(72/2+24)
+cursor = canvas.create_image(cursor_x, cursor_y, image=cursor_img)
+
+# 초기 마우스 위치
+mouse_x = 0
+mouse_y = 0
+
+# 고양이를 나타내기 위해서는 고양이 좌표가 필요함. # TODO: 좌표 다이나믹하게 0 하는 방법
+cats = [[0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]]
+
+# # TODO : 이유 모르겠다 왜 밖에 PhotoImage하면 되고 함수 안에서 하려면 global해야 동작하는지...
+cat_imgs = [
+    None,
+    tkinter.PhotoImage(file=f"neko1.png"),
+    tkinter.PhotoImage(file=f"neko2.png"),
+    tkinter.PhotoImage(file=f"neko3.png"),
+    tkinter.PhotoImage(file=f"neko4.png"),
+    tkinter.PhotoImage(file=f"neko5.png"),
+    tkinter.PhotoImage(file=f"neko6.png"),
+    tkinter.PhotoImage(file=f"neko_niku.png"),
+]
+
+# 낙하하는 동안 클릭이 동작하지 않도록
+click_flag = 0
+
+
+def calculate_mouseLocation(event):
+    global mouse_x, mouse_y, cursor_x, cursor_y, cursor
+    # print(event.x, event.y)
+
+    # bind되고 한번 실행된 이후에는 cursor가 바뀌지가 않는다.
+    # 그래서 실시간 구현 함수가 필요
+    # tkinter에서는 after함수를 통해 실시간 함수를 구현할 수 있다.
+    # window.after(초, 실행할 함수)
+
+    # window.after(100, calculate_mouseLocation)  # --> event arg를 받을 수가 없다.
+    # 따라서 game함수에 after를 써보자
+
+    # 게임판 안에서만 움직이도록 범위제한을 해보자. 게임칸이 8*10
+    # 24 <= x <= 24(여백)+72(한칸)*10row , 24 <= y <= 24(여백)+72(한칸)*8col
+    mouse_x = event.x
+    mouse_y = event.y
+
+    if mouse_x >= 24 and mouse_x <= 24+72*8 and mouse_y >= 24 and mouse_y <= 24+72*10:
+        # 왼쪽 위 꼭지점이 0,0인데 게임판 여백이 24이니까 -24을 해주고 몇번째 칸인지 알기 위해 칸의 size로 나눈다
+        cursor_x_idx, cursor_y_idx = int((mouse_x-24)/72), int((mouse_y-24)/72)
+        # 이미지 중심좌표로 계산을 해야니까 idx*72+한칸의 절반(39)+여백(24)
+        cursor_x = cursor_x_idx*72+39+24
+        cursor_y = cursor_y_idx*72+39+24
+        # print(f"cursor x: {cursor_x}     cursur y{cursor_y}")
+        # 초기에 그려진 커서를 먼저 지워야한다.
+        canvas.delete(cursor)
+        cursor = canvas.create_image(cursor_x, cursor_y, image=cursor_img)
+
+
+# 고양이 나타나도록함.
+def draw_cat():
+    for y in range(10):
+        for x in range(8):
+            if cats[y][x] != 0:
+                cat_x = x*72+39+24
+                cat_y = y*73+39+24
+                canvas.create_image(
+                    cat_x, cat_y, image=cat_imgs[cats[y][x]], tag="cat")
+
+
+def drop_cat():
+    # 아래에서부터 쭉 훑어서 고양이 있으면 한칸 아래로 보내기.
+    for y in range(8, -1, -1):
+        for x in range(8):
+            if cats[y][x] != 0 and cats[y+1][x] == 0:
+                cats[y+1][x] = cats[y][x]
+                cats[y][x] = 0
+    # canvas.delete("cat")
+
+
+def click(event):
+    global click_flag
+    if 24 <= mouse_x and mouse_x < 24+72*8 and 24 <= mouse_y and mouse_y < 24+72*10:
+        click_flag = 1
+        print(f"CLICK {click_flag}")
+        if click_flag:
+            click_flag = 0
+            cursor_x_idx = int((event.x-24)/72)  # 몇번째 칸인지 구하기
+            # cat_x = cursor_x_idx*72+39+24
+            cursor_y_idx = int((event.y-24)/72)  # 몇번째 칸인지 구하기
+            # cat_y = cursor_x_idx*73+39+24
+            # cats[0][cursor_x_idx] = random.randint(1, 6)
+            cats[cursor_y_idx][cursor_x_idx] = 1
+    if 660 <= mouse_x and mouse_x < 840 and 100 <= mouse_y and mouse_y < 160:
+        click_flag = 0
+        cat_block_pang()
+
+
+def cat_block_pang():
+    check = [[0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0]]
+    for y in range(10):
+        for x in range(8):
+            check[y][x] = cats[y][x]
+
+    for y in range(1, 9):  # 위아래가 같은 고양이 팡
+        for x in range(8):
+            if check[y][x] > 0:
+                if check[y-1][x] == check[y][x] and check[y][x] == check[y+1][x]:
+                    cats[y][x-1] = 7
+                    cats[y][x] = 7
+                    cats[y][x+1] = 7
+
+    for y in range(10):  # 좌우가 같은 고양이 팡
+        for x in range(1, 7):
+            if check[y][x] != 0:
+                if check[y][x-1] == check[y][x] and check[y][x] == check[y][x+1]:
+                    cats[y][x-1] = 7
+                    cats[y][x] = 7
+                    cats[y][x+1] = 7
+
+    for y in range(1, 9):  # 대각선 같은 고양이 팡
+        for x in range(1, 7):
+            if check[y][x] > 0:
+                if check[y-1][x-1] == check[y][x] and check[y][x] == check[y+1][x+1]:  # 왼쪽 위, 오른쪽 아래 대각선 \
+                    cats[y][x-1] = 7
+                    cats[y][x] = 7
+                    cats[y][x+1] = 7
+
+                # 오른쪽 위, 왼쪽 아래 대각선 /
+                if check[y-1][x+1] == check[y][x] and check[y][x] == check[y+1][x-1]:
+                    cats[y-1][x+1] = 7
+                    cats[y][x] = 7
+                    cats[y+1][x-1] = 7
+
+
+def game():
+    global click_flag
+    # drop delete draw 순인 것은 이 하나의 묶음이 0.1초로 반복하는데(after에 의해)
+    # 만약 draw delete drop 순이라면, 그리고 삭제한뒤 drop하는데 각 step별로 지연시간이 있는게 아니라서 눈으로 볼수가 없음.
+    # drop에는 나타내는게 없어서
+
+    # drop_cat()
+    canvas.delete("cat")
+    draw_cat()
+    # 마우스로 컨트롤을 위해 마우스 좌표를 계산하고 커서 이미지를 이동시킨다
+    # 이벤트 참조 : https://076923.github.io/posts/Python-tkinter-23/
+    canvas.bind("<Motion>", calculate_mouseLocation)
+    canvas.bind("<ButtonPress>", click)
+
+    window.after(100, game)  # 0.1초
+
+
+game()  # 게임로직 구현
+window.mainloop()
+
+```
+
+
+
